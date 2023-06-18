@@ -4,6 +4,8 @@ project(arithmetica_installer)
 
 add_executable(arithmetica_installer main.cpp)
 
+set_property(TARGET arithmetica_installer PROPERTY CXX_STANDARD 17)
+
 target_link_directories(arithmetica_installer PRIVATE "lib/curl/x64 Release/lib")
 
 target_link_libraries(arithmetica_installer PRIVATE libcurl_a)
