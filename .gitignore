@@ -1,0 +1,5 @@
+lib/curl/
+build/
+.vscode/
+a.exe
+a.out
