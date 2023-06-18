@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <algorithm>
+#include <functional>
 #include <string>
 #include <vector>
 #include <cstdlib>
@@ -27,7 +28,7 @@ size_t WriteFileCallback(void* contents, size_t size, size_t nmemb, FILE* file) 
     return fwrite(contents, size, nmemb, file);
 }
 
-std::string GetStartMenuDirectory() {
+std::string GetGlobalStartMenuDirectory() {
     WCHAR path[MAX_PATH];
 
     HRESULT hr = SHGetFolderPathW(NULL, CSIDL_COMMON_PROGRAMS, NULL, 0, path);
@@ -42,6 +43,23 @@ std::string GetStartMenuDirectory() {
 
     return "NULL";
 }
+
+std::string GetLocalStartMenuDirectory() {
+    WCHAR path[MAX_PATH];
+
+    HRESULT hr = SHGetFolderPathW(NULL, CSIDL_PROGRAMS, NULL, 0, path);
+    if (SUCCEEDED(hr)) {
+        // Convert wide character string to narrow string
+        char pathA[MAX_PATH];
+        WideCharToMultiByte(CP_ACP, 0, path, -1, pathA, MAX_PATH, NULL, NULL);
+        std::string answer = std::string(pathA);
+        std::replace(answer.begin(), answer.end(), '\\', '/');
+        return answer;
+    }
+
+    return "NULL";
+}
+
 
 void add_tags(int page, std::vector<std::string> &tags, std::vector<std::string> &release_dates, std::vector<std::string> &prerelease) {
     CURL* curl;
@@ -121,12 +139,10 @@ BOOL IsElevated() {
 }
 
 int main() {
+    std::function GetStartMenuDirectory = GetGlobalStartMenuDirectory;
+
     if (!IsElevated()) {
-        std::cout << "Please run this program as an administrator." << std::endl;
-        std::cout << "Hint: Right click on the executable and select \"Run as administrator\"." << std::endl;
-        std::cout << "Press enter to exit\n";
-        std::cin.get();
-        return 0;
+        GetStartMenuDirectory = GetLocalStartMenuDirectory;
     }
 
     std::vector<std::string> tags, release_dates, prerelease;
